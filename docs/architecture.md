@@ -80,13 +80,19 @@ This enables the model to learn temporal patterns associated with normal underwa
 
 ## 5. Reconstruction-Based Anomaly Detection
 
-The model follows an autoencoder-based reconstruction approach.
+The model follows a CNN-LSTM Autoencoder architecture consisting of an encoder and a decoder.
 
-During training, it learns to reconstruct normal underwater video sequences. The reconstruction objective encourages the network to capture the spatial and temporal characteristics of normal scene behavior.
+The CNN encoder extracts spatial features from each input frame. The resulting feature sequence is processed by the LSTM encoder to capture temporal dependencies and generate a compact latent representation.
 
-At inference time, reconstruction error is used as an anomaly score.
+The LSTM decoder processes the latent representation to reconstruct the temporal feature sequence, while the CNN decoder reconstructs the original video frames.
 
-The reconstruction loss is based on Mean Squared Error (MSE):
+During training, the model learns to reconstruct normal underwater video sequences using a Mean Squared Error (MSE) reconstruction objective.
+
+### 5.1 Baseline Anomaly Scoring
+
+At inference time, the reconstructed frames are compared with the original input frames.
+
+The reconstruction loss is based on Mean Squared Error:
 
 \[
 L_{\mathrm{MSE}} =
@@ -101,11 +107,27 @@ Where:
 - \(\hat{x}_i\) represents its reconstructed value.
 - \(N\) represents the number of compared values.
 
-The anomaly score for a temporal window is calculated as the mean squared reconstruction error across that window.
-
-A higher reconstruction error indicates a larger difference between the input and its reconstruction and may indicate anomalous behavior.
+The baseline anomaly score is calculated as the mean squared reconstruction error across each temporal window.
 
 Each window-level anomaly score is assigned to the last frame of its corresponding temporal window.
+
+A higher reconstruction error indicates a larger difference between the original and reconstructed input and may indicate anomalous behavior.
+
+### 5.2 Supplementary V2 Post-processing
+
+In addition to the baseline scoring approach, supplementary experiments investigate patch-based anomaly scoring and score post-processing.
+
+The V2 processing pipeline includes:
+
+1. Patch-based scoring using reconstruction error maps.
+2. Top-K patch selection (K = 5).
+3. Aggregation of selected patch scores.
+4. Per-video score normalization.
+5. Temporal smoothing.
+
+These operations are evaluated as supplementary post-processing experiments and are not considered mandatory components of the baseline anomaly scoring method.
+
+The baseline results are retained as the primary reference for evaluating the effect of these additional processing steps.
 
 ## 6. Training Configuration
 
@@ -131,6 +153,8 @@ The training configuration is summarized below:
 | Random seed | 42 |
 
 The best validation checkpoint is retained for evaluation.
+
+All dataset splits are performed at the video level to prevent frames from the same video from appearing across training, validation, and testing sets.
 
 ## 7. Evaluation Settings
 
