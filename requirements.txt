@@ -1,8 +1,7 @@
+torch
 numpy
 pandas
 opencv-python
 matplotlib
-scikit-learn
 scipy
-torch
-torchvision
+scikit-learn
